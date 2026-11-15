@@ -70,7 +70,13 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
         selected_rxns = [r.id for r in model.reactions if str(r.gpr) != "" and str(r.gpr) != "s0001" ]
 
     print("Preparing LP ...")
+    # Work on a copy so the caller's model is not modified (variables/constraints are added directly
+    # to the solver problem), and remove any enzyme layer left from a previous run on the same model,
+    # otherwise adding variables fails with ContainerAlreadyContains (e.g. 'g_b2307').
+    from cfba_moment import remove_enzyme_layer
+    model = model.copy()
     prob = model.solver # .problem
+    remove_enzyme_layer(model)
     n = len(prob.variables)
     m = len(model.metabolites)
 
@@ -156,6 +162,8 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
             rkval = medval
         vind=model.reactions.index(r)    
         lnz=1
+        # vind_b: index of reversible rxn, -1 when irreversible. R used vind_b>0 since R indices
+        # start at 1; in python index 0 is valid, so all checks must be vind_b>=0.
         if not model.reactions.get_by_id(r).reversibility:            
             vind_b=-1            
         else:# Add row with median value to rev direction
@@ -186,7 +194,7 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
                rowind=rowind+1;               
                rxnkcatRow.append({'rsn':vind, 'rxn_id' : r, 'dirxn':1,'rowind':rowind-1,'colind':colind,'val':kval});
                
-               if vind_b>0:#reversible rxn                    
+               if vind_b>=0:#reversible rxn                    
                     Cons[rowind]={'name':r+'_b_kcat','ub':0,
                         'lcind':[model.reactions[vind].reverse_variable._index-1,colind],
                         'lnz':[lnz,-1*rkval]}
@@ -241,7 +249,7 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
           	    #changeMatrixRow(lp=problem(prob),i=rxn_row_id,j=colind,val=-1*kval)
                    row_vals[colind]=-1*kval
                    rxnkcatRow.append({'rsn':vind, 'rxn_id' : r, 'dirxn':1,'rowind':None,'colind':colind,'val':kval});
-                   if vind_b>0: 
+                   if vind_b>=0: 
                         row_vals_b[colind]=-1*rkval
                         rxnkcatRow.append({'rsn':vind_b, 'rxn_id' : r, 'dirxn':-1,'rowind':None,'colind':colind,'val':rkval});
                else:#AND
@@ -267,6 +275,8 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
                      Cons[rowind]={'name':'Aux_'+str(rowind),'ub':0,'lcind':[aux_id,colind], 'lnz':[1,-1]}
                      rowind=rowind+1; 
            row_vals[model.reactions[vind].forward_variable._index-1]= lnz
+           if vind_b>=0: # as in R: row_vals_b[vind_b]=lnz (reverse flux must be in the '_b' row)
+                row_vals_b[model.reactions[vind].reverse_variable._index-1]= lnz
            
            Cons[rowind]={'name':r,'ub':0, 'lcind':row_vals.keys(), 'lnz':row_vals.values()}
            rowind=rowind+1; 
@@ -337,4 +347,4 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
     obj=prob.objective.value
     
     df = pd.DataFrame(rxnkcatRow)         
-    return({'prob':prob,'rxnFlx':rxnFlx,'obj':obj,'geneConc':geneConc,'status':sol,'rxnkcatRow':df})
+    return({'prob':prob,'model':model,'rxnFlx':rxnFlx,'obj':obj,'geneConc':geneConc,'status':sol,'rxnkcatRow':df})

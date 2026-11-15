@@ -43,7 +43,13 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
         selected_rxns = [r.id for r in model.reactions if str(r.gpr) != "" and str(r.gpr) != "s0001" ]
 
     print("Preparing LP ...")
+    # Work on a copy so the caller's model is not modified: the enzyme variables (g_*, cpx_*)
+    # and kcat/MW constraints are added directly to the solver problem. Modifying the input model
+    # made later copies of it (e.g. modelR=modelorg.copy()) already contain these variables,
+    # and the next call failed with ContainerAlreadyContains ('g_b2307').
+    model = model.copy()
     prob = model.solver # .problem
+    remove_enzyme_layer(model)
     n = len(prob.variables)
     m = len(model.metabolites)
 
@@ -133,6 +139,8 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
             rkval = medval
         vind=model.reactions.index(r)    
         lnz=1
+        # vind_b: index of reversible rxn, -1 when irreversible. R used vind_b>0 since R indices
+        # start at 1; in python index 0 is valid, so all checks must be vind_b>=0.
         if not model.reactions.get_by_id(r).reversibility:            
             vind_b=-1            
         else:# Add row with median value to rev direction
@@ -160,7 +168,7 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
                rowind=rowind+1;               
                rxnkcatRow.append({'rsn':vind, 'rxn_id' : r, 'dirxn':1,'rowind':rowind-1,'colind':colind,'val':kval});
                
-               if vind_b>0:
+               if vind_b>=0:
                     
                     Cons[rowind]={'name':r+'_b_kcat','ub':0,
                         'lcind':[model.reactions[vind].reverse_variable._index-1,colind],
@@ -210,7 +218,7 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
           	    #changeMatrixRow(lp=problem(prob),i=rxn_row_id,j=colind,val=-1*kval)
                    row_vals[colind]=-1*kval
                    rxnkcatRow.append({'rsn':vind, 'rxn_id' : r, 'dirxn':1,'rowind':None,'colind':colind,'val':kval});
-                   if vind_b>0: 
+                   if vind_b>=0: 
                         row_vals_b[colind]=-1*rkval
                         rxnkcatRow.append({'rsn':vind_b, 'rxn_id' : r, 'dirxn':-1,'rowind':None,'colind':colind,'val':rkval});
                else:#AND
@@ -233,6 +241,8 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
                      Cons[rowind]={'name':'Aux_'+str(rowind),'ub':0,'lcind':[aux_id,colind], 'lnz':[1,-1]}
                      rowind=rowind+1; 
            row_vals[model.reactions[vind].forward_variable._index-1]= lnz
+           if vind_b>=0: # as in R: row_vals_b[vind_b]=lnz (reverse flux must be in the '_b' row)
+                row_vals_b[model.reactions[vind].reverse_variable._index-1]= lnz
            
            Cons[rowind]={'name':r,'ub':0, 'lcind':row_vals.keys(), 'lnz':row_vals.values()}
            rowind=rowind+1; 
@@ -293,4 +303,33 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
     obj=prob.objective.value
     
     df = pd.DataFrame(rxnkcatRow)         
-    return({'prob':prob,'rxnFlx':rxnFlx,'obj':obj,'geneConc':geneConc,'status':sol,'rxnkcatRow':df})
+    return({'prob':prob,'model':model,'rxnFlx':rxnFlx,'obj':obj,'geneConc':geneConc,'status':sol,'rxnkcatRow':df})
+
+
+def remove_enzyme_layer(model):
+    """Remove variables/constraints added by a previous call of cfba_moment or ccFBA_mr on this model
+    (or on the model it was copied from), so that they can be added again cleanly.
+    Variables: g_<gene>, gr_<gene>_<rxn>, cpx_*; constraints: <rxn>, <rxn>_b, <rxn>_kcat, <rxn>_b_kcat,
+    <rxn>_<gene>, Aux_*, mfe_<gene>, MW. Reaction variables and metabolite constraints are never removed."""
+    rxn_vars = set()
+    for r in model.reactions:
+        rxn_vars.add(r.forward_variable.name)
+        rxn_vars.add(r.reverse_variable.name)
+    gene_vars = {f"g_{g.id}" for g in model.genes}
+    old_vars = [v for v in model.solver.variables if v.name not in rxn_vars and
+                (v.name in gene_vars or v.name.startswith("cpx_") or v.name.startswith("gr_"))]
+
+    met_ids = {m.id for m in model.metabolites}
+    cons_names = {"MW"}
+    cons_names.update(f"mfe_{g.id}" for g in model.genes)
+    for r in model.reactions:
+        cons_names.update([r.id, r.id + "_b", r.id + "_kcat", r.id + "_b_kcat"])
+        cons_names.update(r.id + "_" + g.id for g in r.genes)
+    old_cons = [c for c in model.solver.constraints if c.name not in met_ids and
+                (c.name in cons_names or c.name.startswith("Aux_"))]
+
+    if old_vars or old_cons:
+        print("Removing %d variables and %d constraints left from a previous enzyme-constrained run"
+              % (len(old_vars), len(old_cons)))
+        model.solver.remove(old_cons + old_vars)
+        model.solver.update()
