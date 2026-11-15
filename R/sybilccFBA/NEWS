@@ -1,0 +1,37 @@
+sybilccFBA Version History
+# ------------------------------------------------------- #
+   Version 3.0.2    2022-08-13
+# ------------------------------------------------------- #
+
+- Add gene concentration lower/upper bounds: geneConcLB, geneConcUB
+- Add geneConc to the returned results in cfba_moment
+- Correct problem of Latex
+- add simulate_EColi function
+
+# ------------------------------------------------------- #
+   Version 3.0.1    2019-12-15
+# ------------------------------------------------------- #
+
+- Fixing NOTE non-standard file creation on tests
+
+# ------------------------------------------------------- #
+Version 3.0.0    2018-11-11
+# ------------------------------------------------------- #
+
+- Add function getccFBA_mat that gets the model of ccFBA 
+  as a matrix and includes protein complex stoichiometry.
+
+- Add function getGpr1iso that preprocesses the metabolic 
+
+
+- Add runFVA option to cfba_moment_mr to get flux variability.
+
+- Add parameter C_mu_coef that is used to have C as a linear 
+function of mu (biomass) : C = RHS + C_mu_coef*Biomass.
+
+- Add function simulate_EColi to combine different functions 
+  and show a test case for them.
+- Add iML1515 data model
+- Add Kcat lists for EColi and molecular weight for iML1515 model
+
+
