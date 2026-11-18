@@ -127,12 +127,15 @@ def cfba_moment(model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, ob
         rl = str(model.reactions.get_by_id(r).gpr)
         rl = convert_gpr(rl)
         #======
-        tmp_kcat=Kcat[(Kcat['rxn_id']=='R_'+r) & (Kcat["dirxn"]==1)]['val']
+        # Kcat ids are SBML ids with 'R_' prefix (as in the R version, where sybil keeps it), but cobra
+        # strips the prefix when reading SBML; add it unless the reaction id already has it.
+        kcat_id = r if r.startswith('R_') else 'R_'+r
+        tmp_kcat=Kcat[(Kcat['rxn_id']==kcat_id) & (Kcat["dirxn"]==1)]['val']
         if len(tmp_kcat)>0:
             kval = float(tmp_kcat.iloc[0])
         else:
             kval = medval
-        tmp_kcat=Kcat[(Kcat['rxn_id']==r) & (Kcat["dirxn"]==-1)]['val']
+        tmp_kcat=Kcat[(Kcat['rxn_id']==kcat_id) & (Kcat["dirxn"]==-1)]['val']
         if len(tmp_kcat)>0:
             rkval = float(tmp_kcat.iloc[0])#Warning
         else:
