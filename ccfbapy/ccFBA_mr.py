@@ -73,7 +73,7 @@ def ccFBA_mr (model, Kcat=None, MW=None, selected_rxns=None, verboseMode=2, objV
     # Work on a copy so the caller's model is not modified (variables/constraints are added directly
     # to the solver problem), and remove any enzyme layer left from a previous run on the same model,
     # otherwise adding variables fails with ContainerAlreadyContains (e.g. 'g_b2307').
-    from cfba_moment import remove_enzyme_layer
+    from .cfba_moment import remove_enzyme_layer
     model = model.copy()
     prob = model.solver # .problem
     remove_enzyme_layer(model)

@@ -1,5 +1,5 @@
-# Read the data sets of the R package (R/sybilccFBA/data/*.RData) in python.
-# part of ccFBApy
+# Read the data sets of the R package (R/sybilccFBA/data/*.RData) in Python: development tool of ccFBApy,
+# used by tools/make_package_data.py to export them to SBML and CSV (the package ccfbapy does not need rdata).
 # sybil models (class modelorg) are converted to cobra models, data frames to pandas DataFrames.
 # Needs the package rdata (pip install rdata).
 import warnings
@@ -57,9 +57,9 @@ def sybil2cobra(mo):
     gpr = np.asarray(mo.gpr)
     rxns = []
     for j, rid in enumerate(rids):
-        r = cobra.Reaction(str(rid), name=str(rnames[j]), lower_bound=lb[j], upper_bound=ub[j])
+        r = cobra.Reaction(str(rid), name=str(rnames[j]), lower_bound=float(lb[j]), upper_bound=float(ub[j]))
         s, e = S.indptr[j], S.indptr[j + 1]
-        r.add_metabolites({mets[i]: v for i, v in zip(S.indices[s:e], S.data[s:e])})
+        r.add_metabolites({mets[i]: float(v) for i, v in zip(S.indices[s:e], S.data[s:e])})
         rxns.append(r)
     model.add_reactions(rxns)
     # genes in the order of allGenes (as in R); otherwise cobra adds them in the order of a set, which changes
@@ -70,14 +70,18 @@ def sybil2cobra(mo):
         if g.strip():
             r.gene_reaction_rule = g
     oc = np.asarray(mo.obj_coef, dtype=float)
-    model.objective = {model.reactions[j]: oc[j] for j in np.nonzero(oc)[0]}
+    model.objective = {model.reactions[j]: float(oc[j]) for j in np.nonzero(oc)[0]}
     return model
 
 
 def read_RData(fname):
     """Objects of an .RData file: sybil models -> cobra Model, data frames -> DataFrame, other objects as
     returned by rdata. Returns a dictionary name -> object."""
-    import rdata
+    try:
+        import rdata
+    except ImportError as e:
+        raise ImportError("reading .RData files needs the package rdata: pip install rdata"
+                          ) from e
     with warnings.catch_warnings():  # rdata warns for the S4 classes it has no constructor for
         warnings.filterwarnings('ignore', message='Missing constructor for R class')
         objs = rdata.conversion.convert(rdata.parser.parse_file(fname))

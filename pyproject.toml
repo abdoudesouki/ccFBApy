@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ccFBApy"
+dynamic = ["version"]
+description = "Cost constrained flux balance analysis (MOMENT, ccFBA) with COBRApy: Python port of the R package sybilccFBA"
+readme = "PYPI_README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+authors = [{ name = "Abdelmoneim Amer Desouki", email = "abdelmoneim.amer@uni-duesseldorf.de" }]
+maintainers = [{ name = "Abdelmoneim Amer Desouki", email = "abdelmoneim.amer@uni-duesseldorf.de" }]
+keywords = ["flux balance analysis", "FBA", "MOMENT", "ccFBA", "enzyme cost", "constraint-based modeling",
+            "metabolic model", "cobra", "sybilccFBA", "systems biology"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dependencies = [
+    "cobra>=0.26",
+    "optlang>=1.5",
+    "numpy>=1.21",
+    "pandas>=1.3",
+    "scipy>=1.7",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.3"]
+test = ["pytest>=7"]
+all = ["matplotlib>=3.3"]
+
+[tool.setuptools]
+packages = ["ccfbapy"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+ccfbapy = ["data/*.csv", "data/extdata/*", "data/sybilccFBA/*.csv", "data/sybilccFBA/*.xml.gz", "data/bigg/*.xml.gz"]
+
+[tool.setuptools.dynamic]
+version = { attr = "ccfbapy.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

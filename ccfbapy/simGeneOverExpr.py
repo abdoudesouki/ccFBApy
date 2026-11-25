@@ -43,7 +43,7 @@ def simGeneOverExpr(gx, y_pct, model, mod2=None, Kcat=None, MW=None, selected_rx
         gxMC_WT, gxMC_OEx: MC (g/gDW) of gene gx in WTSol and OExSol (not returned in R)
     """
     if FUN is None:
-        from cfba_moment import cfba_moment
+        from .cfba_moment import cfba_moment
         FUN = cfba_moment
     allGenes = [g.id for g in model.genes]
     if gx not in allGenes:

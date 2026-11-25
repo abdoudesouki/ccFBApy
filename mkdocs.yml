@@ -1,0 +1,45 @@
+site_name: ccFBApy
+site_description: Cost constrained flux balance analysis (MOMENT, ccFBA) in Python - port of the R package sybilccFBA
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+
+validation:
+  links:
+    anchors: warn
+
+nav:
+  - Home: index.md
+  - Inputs, units and conventions: conventions.md
+  - Functions:
+      - cfba_moment (MOMENT): reference/cfba_moment.md
+      - cfba_moment_mr (ccFBA_mr): reference/cfba_moment_mr.md
+      - cfba_moment_pw: reference/cfba_moment_pw.md
+      - getGpr1iso: reference/getGpr1iso.md
+      - getccFBA_mat: reference/getccFBA_mat.md
+      - getccFBA_sol: reference/getccFBA_sol.md
+      - ccFBA_iso (new, no getGpr1iso): reference/ccFBA_iso.md
+      - simulate_EColi: reference/simulate_EColi.md
+      - simGeneOverExpr: reference/simGeneOverExpr.md
+      - mod2irrev: reference/mod2irrev.md
+      - calc_MW: reference/calc_MW.md
+      - readmodel: reference/readmodel.md
+      - addGlcTrns: reference/addGlcTrns.md
+      - Utilities: reference/utilities.md
+  - R only (replaced or not needed):
+      - getRevFlux: reference/getRevFlux.md
+      - sysBiolAlg_ccFBA: reference/sysBiolAlg_ccFBA.md
+  - Data sets: data.md
+  - Differences from R and known issues: differences.md

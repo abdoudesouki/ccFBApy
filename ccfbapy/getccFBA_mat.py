@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 
-from gpr1iso import getGpr1iso
+from .gpr1iso import getGpr1iso
 
 
 class IrrevModel:

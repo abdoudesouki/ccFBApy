@@ -7,8 +7,8 @@ import copy
 import numpy as np
 import pandas as pd
 
-from getccFBA_mat import getccFBA_mat, solve_ccFBA_mat
-from getccFBA_sol import flx_MC_tables
+from .getccFBA_mat import getccFBA_mat, solve_ccFBA_mat
+from .getccFBA_sol import flx_MC_tables
 
 
 def simulate_EColi(model, mod2, kcat, mw, budget_C, CSList, atpmz=True, trns_rxns=None,

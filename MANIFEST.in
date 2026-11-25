@@ -1,0 +1,5 @@
+# source distribution: the package, its data, the tests and the metadata only
+include LICENSE PYPI_README.md pyproject.toml
+recursive-include ccfbapy/data *.csv *.xml.gz *.txt *.ptt *.faa *.TSV
+recursive-include tests *.py
+global-exclude __pycache__ *.py[cod] .ipynb_checkpoints

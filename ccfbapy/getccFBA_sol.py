@@ -5,7 +5,7 @@
 import numpy as np
 import pandas as pd
 
-from getccFBA_mat import getccFBA_mat, solve_ccFBA_mat, _gene_bounds
+from .getccFBA_mat import getccFBA_mat, solve_ccFBA_mat, _gene_bounds
 
 
 def flx_MC_tables(mrMat, x):

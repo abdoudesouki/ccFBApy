@@ -40,32 +40,59 @@ implementation.
 In **`ccFBA_mr`**, a gene `g` that catalyzes `n > 1` of the selected reactions gets one variable per
 reaction, `g_r`, and `sum_r g_r <= g`. The molecular weight constraint is applied to `g`.
 
+## Documentation
+
+The folder [`docs`](docs) has one page for each R help page in
+[`R/sybilccFBA/man`](R/sybilccFBA/man). Each page gives the Python usage, arguments, details,
+value, differences from R and examples (the examples have been run). Start with
+[`docs/index.md`](docs/index.md). The same manual, with the examples as code cells you can run (and their outputs),
+is in the notebook [`reference_manual.ipynb`](reference_manual.ipynb), and in one HTML file,
+[`reference_manual.html`](reference_manual.html) (open it in a browser). Both have a table of contents, and each
+section links back to it. They are generated from `docs/`: after you change a page, run
+`python tools/make_reference_notebook.py --execute --html`. To build the multi-page HTML site (output in `site/`):
+
+```
+pip install mkdocs mkdocs-material
+mkdocs build        # or: mkdocs serve
+```
+
 ## Status of the Python implementation
 
 | R (sybilccFBA) | Python | Status |
 |---|---|---|
-| `cfba_moment` | `cfba_moment.py`: `cfba_moment()` | Working, tested on iAF1260 ([`test_moment.ipynb`](test_moment.ipynb)) |
-| `cfba_moment_mr` | `ccFBA_mr.py`: `ccFBA_mr()` | Working, tested on iAF1260 ([`test_ccFBA_mr.ipynb`](test_ccFBA_mr.ipynb)). See known issues for `selected_rxns` |
-| `getGpr1iso` | `gpr1iso.py`: `getGpr1iso()` | Working, including complex stoichiometry (`cpx_stoich`) |
-| `getccFBA_mat` | `getccFBA_mat.py`: `getccFBA_mat()` | Working, tested on iAF1260 ([`test_ccFBA_mat.ipynb`](test_ccFBA_mat.ipynb)). The same file has `mod2irrev()` (irreversible model) and `solve_ccFBA_mat()` (solves the matrix, replaces `sysBiolAlg`/`optimizeProb`) |
+| `cfba_moment` | `ccfbapy/cfba_moment.py`: `cfba_moment()` | Working, tested on iAF1260 ([`test_moment.ipynb`](test_moment.ipynb)) |
+| `cfba_moment_mr` | `ccfbapy/ccFBA_mr.py`: `ccFBA_mr()` | Working, tested on iAF1260 ([`test_ccFBA_mr.ipynb`](test_ccFBA_mr.ipynb)). See known issues for `selected_rxns` |
+| `getGpr1iso` | `ccfbapy/gpr1iso.py`: `getGpr1iso()` | Working, including complex stoichiometry (`cpx_stoich`) |
+| `getccFBA_mat` | `ccfbapy/getccFBA_mat.py`: `getccFBA_mat()` | Working, tested on iAF1260 ([`test_ccFBA_mat.ipynb`](test_ccFBA_mat.ipynb)). The same file has `mod2irrev()` (irreversible model) and `solve_ccFBA_mat()` (solves the matrix, replaces `sysBiolAlg`/`optimizeProb`) |
 | `getRevFlux` | not needed | `rxnFlx` in the results already holds net fluxes (forward − reverse) |
-| `simulate_EColi` | `simulate_EColi.py`: `simulate_EColi()` | Working, example of the R help page in [`test_simulate_EColi.ipynb`](test_simulate_EColi.ipynb) (iML1515) |
-| `getccFBA_sol` | `getccFBA_sol.py`: `getccFBA_sol()` | Working: builds and solves the matrix; also returns `obj`, `status`, `rxnFlx`, `geneConc` (dict) like the other python functions |
-| `simGeneOverExpr` (`R/Tin/simGeneOverExpr.R`) | `simGeneOverExpr.py`: `simGeneOverExpr()` | Working, test in [`test_simGeneOverExpr.ipynb`](test_simGeneOverExpr.ipynb) (python version of `R/Tin/test_simGeneOverExpr.R`) |
-| `cfba_moment_pw`, `calc_MW`, `addGlcTrns`, `readmodel`, class `sysBiolAlg_ccFBA` | | Not ported yet |
-| data sets (`data/*.RData`) | `sybil2cobra.py`: `read_RData()` | Reads the `.RData` files of the R package; sybil models become cobra models (ids kept as in sybil, e.g. `EX_glc__D(e)`) |
-| | `genFuns.py`: `scatterPlot()` | Helper: measured vs predicted scatter plot with y = x line, linear fit and Pearson correlation |
+| `simulate_EColi` | `ccfbapy/simulate_EColi.py`: `simulate_EColi()` | Working, example of the R help page in [`test_simulate_EColi.ipynb`](test_simulate_EColi.ipynb) (iML1515) |
+| `getccFBA_sol` | `ccfbapy/getccFBA_sol.py`: `getccFBA_sol()` | Working: builds and solves the matrix; also returns `obj`, `status`, `rxnFlx`, `geneConc` (dict) like the other python functions |
+| `simGeneOverExpr` (`R/OverExpr/simGeneOverExpr.R`) | `ccfbapy/simGeneOverExpr.py`: `simGeneOverExpr()` | Working, test in [`test_simGeneOverExpr.ipynb`](test_simGeneOverExpr.ipynb) (python version of `R/OverExpr/test_simGeneOverExpr.R`) |
+| `calc_MW` | `ccfbapy/calc_MW.py`: `calc_MW()` | Working: reproduces the data set `mw_iML1515` from `NC_000913.faa` (mw in g/mol, divide by 1000 for g/mmol) |
+| `readmodel` | `ccfbapy/readmodel.py`: `readmodel()`, `read_moment_files()` | Working: solves the MOMENT model exported from MATLAB (`inst/extdata`), growth 0.508 with C = 0.27 |
+| `addGlcTrns` | `ccfbapy/addGlcTrns.py`: `addGlcTrns()` | Completed (the R function cannot run: the transporter columns are not added); works on cobra, `cfba_moment` and `getccFBA_mat` problems |
+| `cfba_moment_pw` | `ccfbapy/cfba_moment_pw.py`: `cfba_moment_pw()` | Working: MOMENT on the irreversible model with pairwise OR; iAF1260 growth 0.5083, as the MATLAB model (`readmodel`) |
+| class `sysBiolAlg_ccFBA` | `ccfbapy/getccFBA_mat.py`: `solve_ccFBA_mat()` | Replaced |
+| (new) | `ccfbapy/ccFBA_iso.py`: `ccFBA_iso()`, `getccFBA_iso_mat()` | New: isoenzymes without `getGpr1iso`. Each gene is allocated to the complexes that use it (`sum_t st*e_rt = g`), so shared subunits are not counted twice, and the LP chooses the isoenzymes (knock outs and gene limits are handled). See [`docs/reference/ccFBA_iso.md`](docs/reference/ccFBA_iso.md) |
+| data sets (`R/sybilccFBA/data/*.RData`) | `ccfbapy/datasets.py`: `load_model()`, `load_dataset()` | The data sets of the R package, exported once to SBML (models, ids kept as in sybil, e.g. `EX_glc__D(e)`) and CSV (tables) with `tools/make_package_data.py`; the package does not need `rdata` |
+| | `ccfbapy/genFuns.py`: `scatterPlot()` | Helper: measured vs predicted scatter plot with y = x line, linear fit and Pearson correlation |
 
 Options of the R functions that are **not** available in Python yet: `runFVA`, `fvaRxn`, and in
 `cfba_moment`/`ccFBA_mr` also `C_mu_coef` and `objVal` (accepted but unused; both work in `getccFBA_mat`). `solver` is also accepted but unused: the problem is solved
 with the model's solver. Only GLPK, cobra's default, has been tested.
 
-## Requirements
+## Installation
+
+ccFBApy is a Python package (`pyproject.toml`), published on PyPI as `ccFBApy` and imported as `ccfbapy`:
 
 ```
-pip install cobra pandas numpy scipy matplotlib
-pip install rdata    # only to read the .RData files of the R package (sybil2cobra.py)
+pip install ccFBApy              # the methods and the data sets (cobra, optlang, numpy, pandas, scipy)
+pip install "ccFBApy[all]"       # + matplotlib for scatterPlot
 ```
+
+From this repository: `pip install .`, or for development `pip install -e ".[all,test]"` and run the tests with
+`pytest` (folder `tests`). Without installing, `import ccfbapy` works from the root folder of the repository.
+Building and publishing the package is described in [RELEASING.md](RELEASING.md).
 
 Tested with Python 3.12, cobra 0.32.1, optlang 1.9.1 (GLPK solver). The notebooks were created with Python 3.11.
 
@@ -74,23 +101,22 @@ Tested with Python 3.12, cobra 0.32.1, optlang 1.9.1 (GLPK solver). The notebook
 ```python
 import cobra
 import pandas as pd
-import cfba_moment as cfba
-import ccFBA_mr as ccfba
+import ccfbapy
 
 model = cobra.io.read_sbml_model('models/iAF1260.xml')
-mw = pd.read_csv('data/ecoli_mw.csv')      # gene, molecular weight (g/mmol)
-kcat = pd.read_csv('data/ecoli_kcat.csv')  # rxn_id, val (1/s), dirxn (1: forward, -1: reverse)
+mw = pd.read_csv('data/Ecoli_MW.csv')      # gene, molecular weight (g/mmol)
+kcat = pd.read_csv('data/Ecoli_kcat.csv')  # rxn_id, val (1/s), dirxn (1: forward, -1: reverse)
 
 # MOMENT
-Res = cfba.cfba_moment(model, kcat, MW=mw, verboseMode=1, RHS=0.27, medval=3600*22.6)
+Res = ccfbapy.cfba_moment(model, kcat, MW=mw, verboseMode=1, RHS=0.27, medval=3600*22.6)
 print(Res['obj'], Res['status'])
 
 # ccFBA with multi-functional enzymes
-Res_mr = ccfba.ccFBA_mr(model, kcat, MW=mw, verboseMode=1, RHS=0.27, medval=3600*22.6)
+Res_mr = ccfbapy.ccFBA_mr(model, kcat, MW=mw, verboseMode=1, RHS=0.27, medval=3600*22.6)
 ```
 
-Run the scripts from the repository folder: `ccFBA_mr.py` imports `cfba_moment.py`, and `getccFBA_mat.py`
-imports `gpr1iso.py`. The functions
+The same data are in the package: `ccfbapy.datasets.load_kcat()`, `load_mw()`, `load_model('iAF1260')`
+(sybil ids), `load_cpx_stoich()`, ... (see `docs/data.md`). The functions
 work on a copy of the model, so the model you pass in is not modified. They can be called repeatedly
 on the same model or on copies of it. If a model already contains the variables and constraints of
 an earlier run, these are removed first.
@@ -132,7 +158,7 @@ given with `cpx_stoich`: `v <= kcat * cpx`, `g_gene >= stoich * cpx`, and a one-
 `v <= kcat * g / n`.
 
 ```python
-from getccFBA_mat import getccFBA_mat, solve_ccFBA_mat
+from ccfbapy import getccFBA_mat, solve_ccFBA_mat
 
 mat = getccFBA_mat(model, Kcat=kcat, MW=mw, RHS=0.27, medval=3600*22.6)   # optional: cpx_stoich=DataFrame('genes','stoich')
 Res = solve_ccFBA_mat(mat)
@@ -200,14 +226,16 @@ budget is reduced by `y_pct` instead. Bounds are taken from the cobra model (`cf
 |---|---|
 | `models/iAF1260.xml` | *E. coli* iAF1260 (SBML) |
 | `models/iMM904.xml` | *S. cerevisiae* iMM904 (SBML) |
-| `data/ecoli_kcat.csv` | *E. coli* kcat values used in MOMENT (same as R dataset `kcat`) |
-| `data/ecoli_mw.csv` | *E. coli* molecular weights (similar to R dataset `mw`: 288 more genes, 7 values differ by up to 2%) |
-| `R/Tin/` | `simGeneOverExpr.R`, its test `test_simGeneOverExpr.R` and the kcat file `kcat2` used by the test |
-| `data/yeast_imm_kcat.csv`, `data/yst_mw.csv` | *S. cerevisiae* kcat values and molecular weights (from R datasets `yeast_kcat`, `yst_mw`) |
+| `data/Ecoli_kcat.csv` | *E. coli* kcat values used in MOMENT (same as R dataset `kcat`) |
+| `data/Ecoli_MW.csv` | *E. coli* molecular weights (similar to R dataset `mw`: 288 more genes, 7 values differ by up to 2%) |
+| `ccfbapy/data/` | the data shipped with the package (`ccfbapy.datasets`): the R data sets as SBML and CSV (`sybilccFBA/`), the models of `models/` (`bigg/*.xml.gz`), the CSV tables of `data/` and the files of `R/sybilccFBA/inst/extdata`. Made with `tools/make_package_data.py` |
+| `R/OverExpr/` | `simGeneOverExpr.R`, its test `test_simGeneOverExpr.R` and the kcat file `kcat2` used by the test |
+| `data/yeast_imm_kcat.csv`, `data/yeast_mw.csv` | *S. cerevisiae* kcat values and molecular weights (from R datasets `yst_kcat`, `yst_mw`) |
 
 The R package contains more data: models iJO1366 and iML1515, molecular weights for iML1515, and
-protein complex stoichiometry (`inst/extdata/cpx_stoich_me.csv`). The `.RData` files can be read with
-`sybil2cobra.read_RData`, e.g. `read_RData('R/sybilccFBA/data/iML1515.RData')['iML1515']`.
+protein complex stoichiometry (`inst/extdata/cpx_stoich_me.csv`). Its data sets are in the package as SBML and
+CSV files: `ccfbapy.datasets.load_model('iML1515')`, `load_dataset('mw_iML1515')`, ... (the `.RData` files are only read
+by the development tool `tools/make_package_data.py`, which needs `rdata`).
 
 ## Test notebooks
 
@@ -222,11 +250,11 @@ Both notebooks simulate growth of iAF1260 on 24 carbon sources (oxygen uptake op
 | [`test_ccFBA_mat.ipynb`](test_ccFBA_mat.ipynb) | `getccFBA_mat` | 0.394 |
 
 [`test_simulate_EColi.ipynb`](test_simulate_EColi.ipynb) runs the example of the R help page of `simulate_EColi`:
-iML1515 (from `iML1515.RData`), kcat_max of `allKcats_upd34_dd_h.csv`, complex stoichiometry, C = 0.27, `tex`
+iML1515 (the R data set, `datasets.load_model('iML1515')`), kcat_max of `allKcats_upd34_dd_h.csv`, complex stoichiometry, C = 0.27, `tex`
 transport reactions excluded, ATPM not set to zero. Spearman correlation 0.37, Pearson R 0.47.
 
-[`test_simGeneOverExpr.ipynb`](test_simGeneOverExpr.ipynb) runs `R/Tin/test_simGeneOverExpr.R`: over expression of
-b2323 with `cfba_moment` (5–50% of C) and of b0929 with the three ccFBA functions, on iAF1260 (from `iAF1260.RData`).
+[`test_simGeneOverExpr.ipynb`](test_simGeneOverExpr.ipynb) runs `R/OverExpr/test_simGeneOverExpr.R`: over expression of
+b2323 with `cfba_moment` (5–50% of C) and of b0929 with the three ccFBA functions, on iAF1260 (the R data set, `datasets.load_model('iAF1260')`).
 
 With the same `RHS`, `ccFBA_mr` predicts lower growth rates (0.20–0.29 1/h vs 0.32–0.57 1/h for
 MOMENT), because the capacity of multi-functional enzymes is shared between their reactions. The
@@ -235,8 +263,9 @@ notebooks use Windows paths (`models\\iAF1260.xml`); on Linux/macOS, use `/`.
 ## Known issues
 
 - `ccFBA_mr` with `selected_rxns`: the problem is solved, but collecting `geneConc` fails with a
-  `KeyError` for genes that catalyze none of the selected reactions (`ccFBA_mr.py`, line 346).
-- `mod2irrev.py` (indentation error) .
+  `KeyError` for genes that catalyze none of the selected reactions (`ccfbapy/ccFBA_mr.py`, line 346).
+- `test_moment.ipynb` and `test_ccFBA_mr.ipynb` use Windows paths (`models\\iAF1260.xml`, `data\\ecoli_mw.csv`); on
+  Linux/macOS use `models/iAF1260.xml` and `data/Ecoli_MW.csv`.
 
 ## License
 
