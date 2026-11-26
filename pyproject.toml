@@ -10,8 +10,8 @@ readme = "PYPI_README.md"
 requires-python = ">=3.9"
 license = "GPL-3.0-only"
 license-files = ["LICENSE"]
-authors = [{ name = "Abdelmoneim Amer Desouki", email = "abdelmoneim.amer@uni-duesseldorf.de" }]
-maintainers = [{ name = "Abdelmoneim Amer Desouki", email = "abdelmoneim.amer@uni-duesseldorf.de" }]
+authors = [{ name = "Abdelmoneim Amer Desouki", email = "dr.desouki@gmail.com" }]
+maintainers = [{ name = "Abdelmoneim Amer Desouki", email = "dr.desouki@gmail.com" }]
 keywords = ["flux balance analysis", "FBA", "MOMENT", "ccFBA", "enzyme cost", "constraint-based modeling",
             "metabolic model", "cobra", "sybilccFBA", "systems biology"]
 classifiers = [
